@@ -1,18 +1,8 @@
-# Virtual Environment
 venv/
-
-# Python cache
 __pycache__/
 *.pyc
 
-# Streamlit cache
-.streamlit/
+data/*.xlsx
 
-# Reports (generated files)
 reports/*.xlsx
 reports/*.csv
-
-# VS Code settings
-.vscode/
-
-data/*.xlsx
