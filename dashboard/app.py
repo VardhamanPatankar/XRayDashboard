@@ -1,13 +1,38 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from streamlit_autorefresh import st_autorefresh
+from datetime import datetime
+import os
+from io import BytesIO
+from openpyxl import Workbook
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+st.set_page_config(
+    page_title="X-Ray Analytics Dashboard",
+    page_icon="🩻",
+    layout="wide"
+)
+
+# --------------------
+# Auto Refresh
+# --------------------
+
+st_autorefresh(
+    interval=60000,  # 1 minute
+    key="dashboard_refresh"
+)
 
 # --------------------
 # Load Data
 # --------------------
 
-df = pd.read_excel(
-    "data/prediction_logs_25062026.xlsx"
+excel_file = "data/prediction_logs.xlsx"
+df = pd.read_excel(excel_file)
+
+excel_last_updated = datetime.fromtimestamp(
+    os.path.getmtime(excel_file)
 )
 
 # --------------------
@@ -64,7 +89,23 @@ df["disease_category"] = (
 # Sidebar Filters
 # --------------------
 
-st.sidebar.header("Filters")
+st.sidebar.header("🔍Filters")
+st.sidebar.caption(
+    "Use the filters below to explore the dashboard."
+)
+# --------------------
+# Date Filter
+# --------------------
+
+start_date = st.sidebar.date_input(
+    "Start Date",
+    value=df["date"].min()
+)
+
+end_date = st.sidebar.date_input(
+    "End Date",
+    value=df["date"].max()
+)
 
 customers = st.sidebar.multiselect(
     "Select Clinic",
@@ -84,24 +125,20 @@ outcomes = st.sidebar.multiselect(
     default=sorted(df["flag_abnormal"].unique())
 )
 
-dates = st.sidebar.multiselect(
-    "Select Date",
-    options=sorted(df["date"].unique()),
-    default=sorted(df["date"].unique())
-)
-
 # --------------------
 # Apply Filters
 # --------------------
 
 filtered_df = df[
+    (df["date"] >= start_date)
+    &
+    (df["date"] <= end_date)
+    &
     (df["cust_id"].isin(customers))
     &
     (df["image_category"].isin(image_categories))
     &
     (df["flag_abnormal"].isin(outcomes))
-    &
-    (df["date"].isin(dates))
 ]
 
 # --------------------
@@ -177,6 +214,10 @@ clinic_summary["abnormal_pct"] = (
 ) * 100
 
 clinic_summary = clinic_summary.reset_index()
+clinic_summary["abnormal_pct"] = (
+    clinic_summary["abnormal_pct"]
+    .round(2)
+)
 
 # --------------------
 # KPI Calculations
@@ -207,11 +248,63 @@ clinics_processed = (
     filtered_df["cust_id"].nunique()
 )
 
+def generate_excel(dataframe):
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Clinic Summary"
+
+    ws.append(list(dataframe.columns))
+
+    for row in dataframe.itertuples(index=False):
+        ws.append(list(row))
+
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    return excel_file
+
+def generate_pdf(dataframe):
+
+    buffer = BytesIO()
+
+    pdf = SimpleDocTemplate(buffer)
+
+    data = [list(dataframe.columns)]
+
+    for row in dataframe.itertuples(index=False):
+        data.append(list(row))
+
+    table = Table(data)
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ])
+    )
+
+    pdf.build([table])
+
+    buffer.seek(0)
+
+    return buffer
+
 # --------------------
 # Dashboard Title
 # --------------------
 
-st.title("X-Ray Analytics Dashboard")
+st.title("🩻X-Ray Analytics Dashboard")
+st.caption(
+    f"🟢 Last Refreshed: {datetime.now().strftime('%d/%m/%Y %I:%M:%S %p')}"
+)
+st.caption(
+    f"📄 Excel Last Updated: {excel_last_updated.strftime('%d/%m/%Y %I:%M:%S %p')}"
+)
 
 # --------------------
 # KPI Cards
@@ -249,90 +342,155 @@ with col5:
         clinics_processed
     )
 
-# --------------------
-# Donut Chart
-# --------------------
-
-chart_data = pd.DataFrame({
-    "Category": ["Normal", "Abnormal"],
-    "Count": [normal_cases, abnormal_cases]
-})
-
-fig = px.pie(
-    chart_data,
-    names="Category",
-    values="Count",
-    hole=0.5,
-    title="Normal vs Abnormal Cases"
-)
-
-st.plotly_chart(
-    fig,
-    use_container_width=True
-)
+st.divider()
 
 # --------------------
-# Disease Distribution
+# Charts Row 1
 # --------------------
 
-st.subheader("Disease Distribution")
+left_col, right_col = st.columns(2)
 
-fig2 = px.bar(
-    disease_summary,
-    x="Disease",
-    y="Count",
-    title="Disease Distribution"
-)
+with left_col:
 
-st.plotly_chart(
-    fig2,
-    use_container_width=True
-)
+    chart_data = pd.DataFrame({
+        "Category": ["Normal", "Abnormal"],
+        "Count": [normal_cases, abnormal_cases]
+    })
 
-# --------------------
-# Clinic-wise Volume
-# --------------------
+    fig = px.pie(
+        chart_data,
+        names="Category",
+        values="Count",
+        hole=0.5,
+        title="Normal vs Abnormal Cases"
+    )
 
-st.subheader("Clinic-wise Volume")
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
-fig3 = px.bar(
-    customer_summary,
-    x="cust_id",
-    y="Studies",
-    title="Studies by Customer"
-)
+with right_col:
 
-st.plotly_chart(
-    fig3,
-    use_container_width=True
-)
+    fig2 = px.bar(
+        disease_summary,
+        x="Disease",
+        y="Count",
+        title="Disease Distribution"
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
 
 # --------------------
 # Daily Trend
 # --------------------
+st.header("Daily Trends")
 
-st.subheader("Daily Trend")
+left_col, right_col = st.columns(2)
 
-fig4 = px.line(
-    daily_trend,
-    x="date",
-    y="Studies",
-    markers=True,
-    title="Daily X-Ray Volume"
-)
+with left_col:
 
-st.plotly_chart(
-    fig4,
-    use_container_width=True
-)
+    fig4 = px.line(
+        daily_trend,
+        x="date",
+        y="Studies",
+        markers=True,
+        title="Daily X-Ray Volume"
+    )
+
+    st.plotly_chart(
+        fig4,
+        use_container_width=True
+    )
+
+with right_col:
+
+    daily_status = (
+        filtered_df
+        .groupby(["date", "flag_abnormal"])
+        .size()
+        .reset_index(name="Studies")
+    )
+
+    daily_status["flag_abnormal"] = (
+        daily_status["flag_abnormal"]
+        .replace({
+            "no": "Normal",
+            "yes": "Abnormal"
+        })
+    )
+
+    fig5 = px.line(
+        daily_status,
+        x="date",
+        y="Studies",
+        color="flag_abnormal",
+        markers=True,
+        title="Daily Normal vs Abnormal Cases"
+    )
+
+    fig5.update_layout(
+        legend_title="Case Type"
+    )
+
+    st.plotly_chart(
+        fig5,
+        use_container_width=True
+    )
+
+st.divider()
 
 # --------------------
 # Clinic Statistics
 # --------------------
+clinic_summary["abnormal_pct"] = (
+    clinic_summary["abnormal_pct"]
+    .round(2)
+)
 
 st.subheader("Clinic Statistics")
 
 st.dataframe(
     clinic_summary,
     use_container_width=True
+)
+
+# --------------------
+# Report Data
+# --------------------
+st.divider()
+st.subheader("📄 Reports")
+
+report_df = clinic_summary.copy()
+
+# --------------------
+# Download CSV Report
+# --------------------
+
+csv = report_df.to_csv(index=False).encode("utf-8")
+excel_data = generate_excel(report_df)
+pdf_data = generate_pdf(report_df)
+
+st.download_button(
+    label="📥 Download CSV Report",
+    data=csv,
+    file_name="clinic_summary.csv",
+    mime="text/csv"
+)
+
+st.download_button(
+    label="📥 Download Excel Report",
+    data=excel_data,
+    file_name="clinic_summary.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
+st.download_button(
+    label="📄 Download PDF Report",
+    data=pdf_data,
+    file_name="clinic_summary.pdf",
+    mime="application/pdf"
 )
