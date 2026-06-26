@@ -2,41 +2,75 @@
 
 ## Project Overview
 
-This project processes AI-generated X-ray prediction logs from clinics and diagnostic centers and generates an interactive analytics dashboard.
+The **X-Ray Analytics Dashboard** is an interactive data analytics application built using **Python** and **Streamlit**.
 
-The dashboard provides operational insights including:
+It processes AI-generated X-ray prediction logs from clinics and diagnostic centers, providing real-time operational insights through interactive visualizations, KPI cards, filters, and downloadable reports.
 
-- Total X-rays processed
-- Normal vs Abnormal cases
-- Disease distribution
-- Customer-wise volume
-- Clinic statistics
-- Daily trends
-- Interactive filtering
+The dashboard automatically refreshes every minute and reads data from a single Excel file, allowing clinics to continuously update the same file without uploading a new one each day.
+
+## Features
+
+### KPI Metrics
+
+- Total X-Rays Processed
+- Normal Cases
+- Abnormal Cases
+- Abnormality Percentage
+- Active Clinics
+
+### Dashboard Visualizations
+
+- Normal vs Abnormal Cases (Donut Chart)
+- Disease Distribution (Bar Chart)
+- Clinic-wise Volume (Bar Chart)
+- Daily X-Ray Volume (Line Chart)
+- Daily Normal vs Abnormal Trend (Dual Line Chart)
+
+### Interactive Filters
+
+- Date Range
+- Clinic
+- Image Category
+- Prediction Outcome
+
+## Live Dashboard Updates
+
+- Reads data directly from a single Excel file
+- Auto-refreshes every 1 minute
+- Displays:
+  - Last Dashboard Refresh Time
+  - Last Excel File Updated Time
+
+## Downloadable Reports
+
+Generate reports directly from the dashboard:
+
+- CSV Report
+- Excel Report
+- PDF Report
 
 ## Technologies Used
 
 - Python
-- Pandas
 - Streamlit
-- Plotly
+- Pandas
+- Plotly Express
 - OpenPyXL
+- ReportLab
+- streamlit-autorefresh
 - Git
 - GitHub
 
 ## Project Structure
 
+```text
 XRayDashboard/
 
 ├── dashboard/
 │   └── app.py
 
 ├── data/
-│   └── prediction_logs_25062026.xlsx
-
-├── reports/
-│   ├── daily_summary.csv
-│   └── daily_report.xlsx
+│   └── prediction_logs.xlsx
 
 ├── scripts/
 │   ├── read_data.py
@@ -44,89 +78,90 @@ XRayDashboard/
 │   ├── kpi.py
 │   ├── disease_summary.py
 │   ├── clinic_summary.py
-│   └── generate_report.py
+│   ├── generate_report.py
+│   └── temporary.py
+
+├── .gitignore
+
+├── requirements.txt
 
 └── README.md
-
-## Features
-
-### KPI Metrics
-
-- Total X-Rays
-- Normal Cases
-- Abnormal Cases
-- Abnormality Percentage
-- Clinics Processed
-
-### Dashboard Visualizations
-
-- Normal vs Abnormal (Donut Chart)
-- Disease Distribution (Bar Chart)
-- Customer-wise Volume (Bar Chart)
-- Daily Trend (Line Chart)
-- Image Category Distribution
-
-### Interactive Filters
-
-- Customer / Clinic
-- Image Category
-- Prediction Outcome
-- Date
+```
 
 ## Installation
 
-Create virtual environment:
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/VardhamanPatankar/XRayDashboard.git
+```
+
+### 2. Move into the project
+
+```bash
+cd XRayDashboard
+```
+
+### 3. Create a virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-Activate environment:
+### 4. Activate the virtual environment
 
-Windows:
+**Windows**
 
 ```bash
 venv\Scripts\activate
 ```
 
-Install dependencies:
+### 5. Install dependencies
 
 ```bash
-pip install pandas streamlit plotly openpyxl
+pip install pandas streamlit plotly openpyxl reportlab streamlit-autorefresh
 ```
 
-## Run Dashboard
+## Run the Dashboard
 
 ```bash
 streamlit run dashboard/app.py
 ```
 
-Dashboard URL:
+The dashboard will be available at:
 
 ```text
 http://localhost:8501
 ```
 
-## Reports Generated
+## Dashboard Highlights
 
-### CSV Report
+✔ Interactive KPI Cards
 
-```text
-reports/daily_summary.csv
-```
+✔ Dynamic Filtering
 
-### Excel Report
+✔ Live Excel Integration
 
-```text
-reports/daily_report.xlsx
-```
+✔ Auto Refresh
+
+✔ Disease Classification
+
+✔ Clinic Statistics
+
+✔ Daily Trend Analysis
+
+✔ Downloadable Reports (CSV, Excel & PDF)
+
+✔ Responsive Dashboard Layout
 
 ## Future Enhancements
 
-- Daily automated scheduler
-- PDF report generation
-- Email notifications
-- Cloud deployment
+- Windows Task Scheduler integration
+- Email notifications with daily reports
+- User authentication
+- Cloud deployment (Streamlit Community Cloud / Azure)
+- Database integration (SQL Server/PostgreSQL)
+- Additional disease analytics and visualizations
 
 ## Author
 Vardhaman Patankar
