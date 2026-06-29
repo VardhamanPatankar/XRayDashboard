@@ -4,7 +4,7 @@
 
 The **X-Ray Analytics Dashboard** is an interactive data analytics application built using **Python** and **Streamlit**.
 
-It processes AI-generated X-ray prediction logs from clinics and diagnostic centers, providing real-time operational insights through interactive visualizations, KPI cards, filters, and downloadable reports.
+It processes AI-generated X-ray prediction logs from clinics and diagnostic centers, providing real-time operational insights through interactive visualizations, KPI cards, filters, an Image Explorer for individual study inspection and downloadable reports.
 
 The dashboard automatically refreshes every minute and reads data from a single Excel file, allowing clinics to continuously update the same file without uploading a new one each day.
 
@@ -32,6 +32,13 @@ The dashboard automatically refreshes every minute and reads data from a single 
 - Clinic
 - Image Category
 - Prediction Outcome
+
+### Image Explorer
+
+- Search and select an individual X-ray image
+- View image-level metadata
+- Display clinic, patient ID, image category, disease classification, severity, outcome and timestamp
+- Expandable AI prediction summary for the selected image
 
 ## Live Dashboard Updates
 
@@ -150,6 +157,8 @@ http://localhost:8501
 
 ✔ Daily Trend Analysis
 
+✔ Image Explorer for individual X-ray inspection
+
 ✔ Downloadable Reports (CSV, Excel & PDF)
 
 ✔ Responsive Dashboard Layout
@@ -158,6 +167,7 @@ http://localhost:8501
 
 - Windows Task Scheduler integration
 - Email notifications with daily reports
+- Display actual X-ray images (when image files are available)
 - User authentication
 - Cloud deployment (Streamlit Community Cloud / Azure)
 - Database integration (SQL Server/PostgreSQL)
