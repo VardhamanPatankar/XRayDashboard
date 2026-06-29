@@ -494,3 +494,53 @@ st.download_button(
     file_name="clinic_summary.pdf",
     mime="application/pdf"
 )
+
+# --------------------
+# Image Explorer
+# --------------------
+
+st.divider()
+
+st.header("🔎 Image Explorer")
+
+selected_image = st.selectbox(
+    "Select Image",
+    options=sorted(df["image_name"].unique())
+)
+
+selected_row = df[
+    df["image_name"] == selected_image
+].iloc[0]
+
+# --------------------
+# Image Details
+# --------------------
+
+st.subheader("Image Details")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write(f"**Image Name:** {selected_row['image_name']}")
+    patient_id = selected_row["patient_id"]
+    if pd.isna(patient_id):
+        patient_id = "N/A"
+    st.write(f"**Patient ID:** {patient_id}")
+    st.write(f"**Clinic:** {selected_row['cust_id']}")
+    st.write(f"**Category:** {selected_row['image_category']}")
+
+with col2:
+    st.write(f"**Outcome:** {'Abnormal' if selected_row['flag_abnormal']=='yes' else 'Normal'}")
+    st.write(f"**Disease:** {classify_disease(selected_row['pred_summary'])}")
+    st.write(f"**Severity:** {selected_row['severity_level']}")
+    timestamp = datetime.strptime(
+    selected_row["timestamp.1"],
+    "%Y-%m-%d_%H:%M:%S"
+    )
+    st.write(
+    f"**Timestamp:** {timestamp.strftime('%d %b %Y, %I:%M %p')}"
+    )
+
+st.expander("📋 Prediction Summary", expanded=False).write(
+    selected_row["pred_summary"]
+)
